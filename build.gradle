@@ -4,10 +4,7 @@
  * Copyright (c) storycraft. Licensed under the MIT Licence.
  */
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-
 plugins {
-    id 'com.github.johnrengelman.shadow' version '6.0.0'
     id 'java-gradle-plugin'
     id 'maven-publish'
 }
@@ -29,37 +26,11 @@ repositories {
     }
 }
 
-configurations {
-    implementation.extendsFrom(embed)
-}
-
 dependencies {
-    shadow localGroovy()
-    shadow gradleApi()
+    implementation project(':story-network-common')
 
-    embed project(':story-network-common')
-
-    embed 'io.heartpattern:mcremapper:2.0.2-SNAPSHOT'
-    embed 'com.google.code.gson:gson:2.8.6'
-}
-configurations.compile.dependencies.remove dependencies.gradleApi()
-
-shadowJar {
-
-    configurations = [project.configurations.embed]
-
-}
-
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-    target = tasks.shadowJar
-    prefix = "sh.pancake.lib"
-}
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
-
-jar {
-
-    finalizedBy shadowJar
-    
+    implementation 'io.heartpattern:mcremapper:2.0.2-SNAPSHOT'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 gradlePlugin {
