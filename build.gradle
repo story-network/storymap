@@ -1,0 +1,50 @@
+/*
+ * Created on Sat Sep 26 2020
+ *
+ * Copyright (c) storycraft. Licensed under the MIT Licence.
+ */
+
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+// Info
+group 'sh.pancake'
+version '1.0.0'
+
+repositories {
+    jcenter()
+
+    maven {
+        url = 'https://maven.heartpattern.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    implementation project(':story-network-common')
+
+    implementation 'io.heartpattern:mcremapper:2.0.2-SNAPSHOT'
+    implementation 'com.google.code.gson:gson:2.8.6'
+}
+
+gradlePlugin {
+    plugins {
+        create('StoryMap') {
+            id = 'sh.pancake.storymap'
+            implementationClass = 'sh.pancake.storymap.StoryMapPlugin'
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+
+        resources {
+            srcDirs files('src/main/resources')
+        }
+    }
+}
