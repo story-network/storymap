@@ -18,7 +18,6 @@ import org.gradle.api.Plugin;
 
 import sh.pancake.storymap.dependency.IDependencyProvider;
 import sh.pancake.storymap.dependency.MCServerDepProvider;
-import sh.pancake.common.object.VersionInfo;
 import sh.pancake.storymap.resource.*;
 import sh.pancake.storymap.task.*;
 
