@@ -7,6 +7,7 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.12.0'
 }
 
 // Info
@@ -35,7 +36,7 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        create('StoryMap') {
+        create('storymap') {
             id = 'sh.pancake.storymap'
             implementationClass = 'sh.pancake.storymap.StoryMapPlugin'
         }
@@ -63,6 +64,19 @@ publishing {
                 username = "$githubUser"
                 password = "$githubToken"
             }
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/story-network'
+    vcsUrl = 'https://github.com/story-network/storymap'
+    description = 'Gradle plugin which provides mapped vanilla minecraft server source with official mapping!'
+    tags = ['minecraft', 'minecraft-server', 'story-network']
+    
+    plugins {
+        storymap {
+            displayName = 'Storymap'
         }
     }
 }
