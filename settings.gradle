@@ -5,7 +5,3 @@
  */
 
 rootProject.name = 'storymap'
-
-include ':story-network-common'
-
-project(':story-network-common').projectDir = new File('../story-network-common')

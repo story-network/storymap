@@ -7,10 +7,8 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '0.12.0'
 }
 
-// Info
 group 'sh.pancake'
 version '1.0.0'
 
@@ -23,12 +21,17 @@ repositories {
     jcenter()
 
     maven {
+        name = 'StoryNetwork'
+        url = 'https://raw.githubusercontent.com/story-network/maven/master/'
+    }
+
+    maven {
         url = 'https://maven.heartpattern.io/repository/maven-public/'
     }
 }
 
 dependencies {
-    implementation project(':story-network-common')
+    implementation 'sh.pancake:story-network-common:1.0.0'
 
     implementation 'io.heartpattern:mcremapper:2.0.2-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.8.6'
@@ -58,25 +61,8 @@ sourceSets {
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/story-network/storymap")
-            credentials {
-                username = "$githubUser"
-                password = "$githubToken"
-            }
-        }
-    }
-}
-
-pluginBundle {
-    website = 'https://github.com/story-network'
-    vcsUrl = 'https://github.com/story-network/storymap'
-    description = 'Gradle plugin which provides mapped vanilla minecraft server source with official mapping!'
-    tags = ['minecraft', 'minecraft-server', 'story-network']
-    
-    plugins {
-        storymap {
-            displayName = 'Storymap'
+            name = 'StoryNetwork'
+            url = uri('../maven')
         }
     }
 }
