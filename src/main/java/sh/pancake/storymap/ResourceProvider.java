@@ -42,6 +42,7 @@ public class ResourceProvider {
         return providerMap.remove(name);
     }
 
+    @SuppressWarnings("unchecked")
     public <T>T provide(String name, String argument, boolean recache) throws Exception {
         if (!hasProvider(name)) return null;
 
