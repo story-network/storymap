@@ -38,15 +38,15 @@ public class MappedMinecraftServerProvider implements IResourceProvider<File> {
             try (FileInputStream stream = new FileInputStream(server)) {
                 byte[] data = stream.readAllBytes();
 
-                try (ByteArrayInputStream input = new ByteArrayInputStream(data)) {
-                    new SaucePreprocessor().process(new ZipInputStream(input), table);
+                try (ZipInputStream input = new ZipInputStream(new ByteArrayInputStream(data))) {
+                    new SaucePreprocessor().process(input, table);
                 }
 
                 try (
-                    ByteArrayInputStream input = new ByteArrayInputStream(data);
-                    FileOutputStream output = new FileOutputStream(file);
+                    ZipInputStream input = new ZipInputStream(new ByteArrayInputStream(data));
+                    ZipOutputStream output = new ZipOutputStream(new FileOutputStream(file));
                 ) {
-                    new PancakeSauce(new ZipInputStream(input), table).remapJar(new ZipOutputStream(output));
+                    new PancakeSauce(input, table).remapJar(output);
                 }
             }
         }
