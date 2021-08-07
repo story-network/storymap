@@ -6,14 +6,18 @@
 
 package sh.pancake.storymap.resource;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
-import io.heartpattern.mcremapper.MCRemapper;
-import io.heartpattern.mcremapper.model.LocalVariableFixType;
-import io.heartpattern.mcremapper.model.Mapping;
-import io.heartpattern.mcremapper.parser.proguard.MappingProguardParser;
-import io.heartpattern.mcremapper.preprocess.InheritabilityPreprocessor;
-import io.heartpattern.mcremapper.preprocess.SuperTypeResolver;
+import sh.pancake.sauce.PancakeSauce;
+import sh.pancake.sauce.SaucePreprocessor;
+import sh.pancake.sauce.parser.ConversionTable;
+import sh.pancake.sauce.parser.IDupeResolver;
+import sh.pancake.sauce.parser.ProguardParser;
 import sh.pancake.storymap.Constants;
 import sh.pancake.storymap.ResourceProvider;
 
@@ -27,14 +31,24 @@ public class MappedMinecraftServerProvider implements IResourceProvider<File> {
             File server = provider.provide(Constants.MINECRAFT_SERVER_RAW, targetVersion, recache);
             String inputMapping = provider.provide(Constants.MINECRAFT_SERVER_MAPPING, targetVersion, recache);
 
-            Mapping originalMapping = MappingProguardParser.INSTANCE.parse(inputMapping);
-            Mapping mapping = originalMapping.reversed();
-            mapping = InheritabilityPreprocessor.INSTANCE.preprocess(mapping, server);
+            ProguardParser parser = new ProguardParser(IDupeResolver.SUFFIX_TAG_RESOLVER);
 
-            // Always delete errors local variable cuz we will use on codespace
-            MCRemapper remapper = new MCRemapper(mapping, SuperTypeResolver.Companion.fromFile(server), LocalVariableFixType.DELETE);
+            ConversionTable table = parser.parse(inputMapping);
 
-            remapper.applyMapping(server, file, Runtime.getRuntime().availableProcessors() * 2);
+            try (FileInputStream stream = new FileInputStream(server)) {
+                byte[] data = stream.readAllBytes();
+
+                try (ByteArrayInputStream input = new ByteArrayInputStream(data)) {
+                    new SaucePreprocessor().process(new ZipInputStream(input), table);
+                }
+
+                try (
+                    ByteArrayInputStream input = new ByteArrayInputStream(data);
+                    FileOutputStream output = new FileOutputStream(file);
+                ) {
+                    new PancakeSauce(new ZipInputStream(input), table).remapJar(new ZipOutputStream(output));
+                }
+            }
         }
 
         return file;

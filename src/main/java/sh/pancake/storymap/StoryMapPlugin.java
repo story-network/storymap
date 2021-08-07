@@ -7,7 +7,6 @@
 package sh.pancake.storymap;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -19,14 +18,11 @@ import org.gradle.api.Plugin;
 import sh.pancake.storymap.dependency.IDependencyProvider;
 import sh.pancake.storymap.dependency.MCServerDepProvider;
 import sh.pancake.storymap.resource.*;
-import sh.pancake.storymap.task.*;
 
 public class StoryMapPlugin implements Plugin<Project> {
 
     private ResourceProvider resProvider;
     private DependencyManager depManager;
-    
-    private Configuration coreConfig;
 
     @Override
     public void apply(Project project) {
@@ -38,12 +34,6 @@ public class StoryMapPlugin implements Plugin<Project> {
         
         this.resProvider = new ResourceProvider(userCache);
         this.depManager = new DependencyManager(resProvider, project);
-
-        // add mojang repo
-        project.getRepositories().maven(repo -> {
-			repo.setName("Mojang");
-			repo.setUrl("https://libraries.minecraft.net/");
-		});
 
         // Init end
 
@@ -60,13 +50,11 @@ public class StoryMapPlugin implements Plugin<Project> {
     }
 
     public void applyTask(TaskContainer container) {
-        container.register("mapJar", MapJarTask.class, task -> {
-            
-        });
+        
     }
 
     public void applyConfiguration(ConfigurationContainer container) {
-        this.coreConfig = container.create("coreApi");
+        
     }
 
     public void applyExtension(ExtensionContainer container) {
@@ -74,11 +62,6 @@ public class StoryMapPlugin implements Plugin<Project> {
     }
 
     public void applyAfter(Project project) {
-        project.getRepositories().maven(mavenArtifactRepository -> {
-            mavenArtifactRepository.setName("SpongePowered");
-            mavenArtifactRepository.setUrl("http://repo.spongepowered.org/maven");
-        });
-
         MinecraftExt ext = (MinecraftExt) project.getExtensions().getByName(Constants.MINECRAFT);
 
         IDependencyProvider mcServerProvider = new MCServerDepProvider(ext.version);
@@ -87,7 +70,7 @@ public class StoryMapPlugin implements Plugin<Project> {
         try {
             depManager.provide(mcServerProvider);
         } catch (Exception e) {
-            System.out.println("ERR: Cannot provide minecraft server");
+            System.err.println("ERR: Cannot provide minecraft server");
             e.printStackTrace();
         }
         

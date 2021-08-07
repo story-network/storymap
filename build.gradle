@@ -10,36 +10,32 @@ plugins {
 }
 
 group 'sh.pancake'
-version '1.0.0'
+version '2.0.0'
 
-sourceCompatibility = 1.9
-targetCompatibility = 1.9
+sourceCompatibility = 11
+targetCompatibility = 11
 
 compileJava.options.encoding = 'UTF-8'
 
 repositories {
-    jcenter()
+    mavenCentral()
 
     maven {
         name = 'StoryNetwork'
         url = 'https://raw.githubusercontent.com/story-network/maven/master/'
     }
-
-    maven {
-        url = 'https://maven.heartpattern.io/repository/maven-public/'
-    }
 }
 
 dependencies {
     implementation 'sh.pancake:story-network-common:1.0.0'
+    implementation 'sh.pancake:pancake-sauce:0.1.0'
 
-    implementation 'io.heartpattern:mcremapper:2.0.2-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 gradlePlugin {
     plugins {
-        create('storymap') {
+        storymap {
             id = 'sh.pancake.storymap'
             implementationClass = 'sh.pancake.storymap.StoryMapPlugin'
         }
