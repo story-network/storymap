@@ -6,10 +6,10 @@
 
 package sh.pancake.storymap.resource;
 
-import sh.pancake.storymap.ResourceProvider;
+import java.io.File;
 
-public interface IResourceProvider<T> {
+public interface IResourceProvider {
 
-    public T provide(ResourceProvider provider, String argument, boolean recache) throws Exception;
+    public File provide(File directory, String targetVersion, boolean recache) throws Exception;
 
 }

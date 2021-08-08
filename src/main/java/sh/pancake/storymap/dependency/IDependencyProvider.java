@@ -8,10 +8,8 @@ package sh.pancake.storymap.dependency;
 
 import org.gradle.api.Project;
 
-import sh.pancake.storymap.ResourceProvider;
-
 public interface IDependencyProvider {
     
-    void provide(ResourceProvider resProvider, Project project) throws Exception;
+    void provide(Project project, boolean recache) throws Exception;
     
 }

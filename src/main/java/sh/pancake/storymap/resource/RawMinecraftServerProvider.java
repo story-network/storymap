@@ -6,49 +6,56 @@
 
 package sh.pancake.storymap.resource;
 
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.net.URL;
+import java.nio.file.Files;
 
-import sh.pancake.storymap.Constants;
-import sh.pancake.storymap.ResourceProvider;
-import sh.pancake.common.object.VersionInfo;
-import sh.pancake.common.util.DownloadUtil;
-import sh.pancake.common.util.FileUtil;
-import sh.pancake.common.util.Hash;
-import sh.pancake.common.util.Hex;
+import com.google.gson.Gson;
 
-public class RawMinecraftServerProvider implements IResourceProvider<File> {
+import sh.pancake.launch.object.VersionInfo;
+import sh.pancake.launch.util.Hash;
+import sh.pancake.launch.util.Hex;
+
+public class RawMinecraftServerProvider implements IResourceProvider {
+
+    private IResourceProvider versionProvider;
+
+    public RawMinecraftServerProvider(IResourceProvider versionProvider) {
+        this.versionProvider = versionProvider;
+    }
 
     @Override
-    public File provide(ResourceProvider provider, String targetVersion, boolean recache) throws Exception {
-        File file = new File(provider.getStorageDirectory(), targetVersion + "-raw.jar");
+    public File provide(File directory, String targetVersion, boolean recache) throws Exception {
+        File serverFile = new File(directory, targetVersion + "-raw.jar");
 
-        VersionInfo versionInfo = null;
-        
-        try {
-            versionInfo = provider.provide(Constants.VERSION_INFO, targetVersion);
-        } catch(Exception e) {
+        VersionInfo versionInfo = new Gson().fromJson(
+                Files.readString(versionProvider.provide(directory, targetVersion, recache).toPath()),
+                VersionInfo.class);
 
-        }
+        if (!recache && serverFile.exists()) {
+            if (versionInfo == null) return serverFile;
 
-        if (!recache && file.exists()) {
-            if (versionInfo == null) return file;
+            try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(serverFile))) {
+                String hex = Hex.byteArrayToHex(Hash.sha1From(input));
 
-            byte[] data = FileUtil.readData(file);
-            String hex = Hex.byteArrayToHex(Hash.sha1From(data));
-
-            if (data.length == versionInfo.downloads.serverMappings.size && hex.equalsIgnoreCase(versionInfo.downloads.server.sha1)) {
-                return file;
+                if (serverFile.length() == versionInfo.downloads.serverMappings.size
+                        && hex.equalsIgnoreCase(versionInfo.downloads.server.sha1)) {
+                    return serverFile;
+                }
             }
         }
 
-        if (versionInfo == null) throw new IOException("Cannot get version info for " + targetVersion);
+        try (
+            BufferedInputStream downloadStream = new BufferedInputStream(new URL(versionInfo.downloads.server.url).openStream());
+            FileOutputStream output = new FileOutputStream(serverFile);
+        ) {
+            downloadStream.transferTo(output);
+        }
 
-        byte[] data = DownloadUtil.fetchData(versionInfo.downloads.server.url);
-
-        FileUtil.writeData(file, data);
-
-        return file;
+        return serverFile;
     }
-    
+
 }

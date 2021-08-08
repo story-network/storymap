@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -18,18 +19,24 @@ import sh.pancake.sauce.SaucePreprocessor;
 import sh.pancake.sauce.parser.ConversionTable;
 import sh.pancake.sauce.parser.IDupeResolver;
 import sh.pancake.sauce.parser.ProguardParser;
-import sh.pancake.storymap.Constants;
-import sh.pancake.storymap.ResourceProvider;
 
-public class MappedMinecraftServerProvider implements IResourceProvider<File> {
+public class MappedMinecraftServerProvider implements IResourceProvider {
+
+    private IResourceProvider serverProvider;
+    private IResourceProvider mappingProvider;
+
+    public MappedMinecraftServerProvider(IResourceProvider serverProvider, IResourceProvider mappingProvider) {
+        this.serverProvider = serverProvider;
+        this.mappingProvider = mappingProvider;
+    }
 
     @Override
-    public File provide(ResourceProvider provider, String targetVersion, boolean recache) throws Exception {
-        File file = new File(provider.getStorageDirectory(), targetVersion + "-mapped.jar");
+    public File provide(File directory, String targetVersion, boolean recache) throws Exception {
+        File file = new File(directory, targetVersion + "-mapped.jar");
 
         if (recache || !file.exists()) {
-            File server = provider.provide(Constants.MINECRAFT_SERVER_RAW, targetVersion, recache);
-            String inputMapping = provider.provide(Constants.MINECRAFT_SERVER_MAPPING, targetVersion, recache);
+            File server = serverProvider.provide(directory, targetVersion, recache);
+            String inputMapping = Files.readString(mappingProvider.provide(directory, targetVersion, recache).toPath());
 
             ProguardParser parser = new ProguardParser(IDupeResolver.SUFFIX_TAG_RESOLVER);
 
