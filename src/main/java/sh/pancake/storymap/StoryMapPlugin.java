@@ -46,7 +46,7 @@ public class StoryMapPlugin implements Plugin<Project> {
             try {
                 handler.handle(dependency);
             } catch (Exception e) {
-                throw new RuntimeException("Error while providing dependencies." + e.getLocalizedMessage(), e);
+                throw new RuntimeException("Error while providing dependencies. " + e.getLocalizedMessage(), e);
             }
         });
     }

@@ -1,3 +1,9 @@
+/*
+ * Created on Sun Aug 08 2021
+ *
+ * Copyright (c) storycraft. Licensed under the GNU General Public License v3.
+ */
+
 package sh.pancake.storymap;
 
 import java.io.File;
