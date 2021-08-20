@@ -11,6 +11,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -53,7 +56,20 @@ public class MappedMinecraftServerProvider implements IResourceProvider {
                     ZipInputStream input = new ZipInputStream(new ByteArrayInputStream(data));
                     ZipOutputStream output = new ZipOutputStream(new FileOutputStream(file));
                 ) {
-                    new PancakeSauce(input, table).remapJar(output);
+                    ExecutorService service = Executors.newCachedThreadPool();
+
+                    new PancakeSauce(
+                        input,
+                        table,
+                        (entry) -> {
+                            String name = entry.getName();
+        
+                            return !name.contains("/") || name.startsWith("com/mojang") || name.startsWith("net/minecraft");
+                        }
+                    ).remapJarAsync(service, output, (info) -> {});
+
+                    service.shutdown();
+                    service.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
                 }
             }
         }
