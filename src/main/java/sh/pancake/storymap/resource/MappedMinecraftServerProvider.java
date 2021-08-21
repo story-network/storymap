@@ -13,7 +13,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -33,6 +33,12 @@ public class MappedMinecraftServerProvider implements IResourceProvider {
         this.mappingProvider = mappingProvider;
     }
 
+    private boolean filterEntry(ZipEntry entry) {
+        String name = entry.getName();
+
+        return !name.contains("/") || name.startsWith("com/mojang") || name.startsWith("net/minecraft");
+    }
+
     @Override
     public File provide(File directory, String targetVersion, boolean recache) throws Exception {
         File file = new File(directory, targetVersion + "-mapped.jar");
@@ -49,7 +55,7 @@ public class MappedMinecraftServerProvider implements IResourceProvider {
                 byte[] data = stream.readAllBytes();
 
                 try (ZipInputStream input = new ZipInputStream(new ByteArrayInputStream(data))) {
-                    new SaucePreprocessor().process(input, table);
+                    new SaucePreprocessor(input, this::filterEntry).process(table);
                 }
 
                 try (
@@ -61,15 +67,10 @@ public class MappedMinecraftServerProvider implements IResourceProvider {
                     new PancakeSauce(
                         input,
                         table,
-                        (entry) -> {
-                            String name = entry.getName();
-        
-                            return !name.contains("/") || name.startsWith("com/mojang") || name.startsWith("net/minecraft");
-                        }
-                    ).remapJarAsync(service, output, (info) -> {});
+                        this::filterEntry
+                    ).remapJarAsync(service, output).join();
 
                     service.shutdown();
-                    service.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
                 }
             }
         }
